@@ -36,7 +36,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 50px;
+    margin-bottom: 30px;
     margin-left: 100px;
     margin-right: 100px;
     gap: 20px;
@@ -66,4 +66,86 @@
 .button-2 {
     background-color: var(--third-color);
     color: var(--primary-color);
+}
+
+.explore-key-features-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.explore-key-features-button {
+    border: none;
+    background-color: transparent;
+    color: var(--primary-color);
+    font-size: 20px;
+    font-weight: 700;
+    font-style: italic;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    &:hover {
+        transform: translateY(-3px);
+        background-color: var(--primary-color);
+        color: var(--secondary-text-color);
+        border-radius: 20px;
+        padding: 10px 20px;
+    }
+}
+
+.key-feature-title {
+    color: var(--primary-color);
+    text-align: center;
+    margin-top: 400px;
+    margin-bottom: 50px;
+    margin-left: 100px;
+    margin-right: 100px;
+    font-size: 50px;
+    font-weight: 900;
+}
+
+.key-feature-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 80px;
+}
+
+.key-feature-item {
+    justify-content: center;
+    align-items: center;
+    width: 500px;
+    height: 180px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+    padding: 30px 30px;
+    background-color: var(--third-color);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.5);
+        background-color: var(--primary-color);
+        color: var(--secondary-text-color);
+    }
+    margin-bottom: 50px;
+    gap: 1px;
+    box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.4);
+}
+
+.key-feature-item-title {
+    text-align: center;
+    font-size: 25px;
+    font-weight: 700;
+}
+
+.key-feature-item-description-1 {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 650;
+}
+
+.key-feature-item-description-2 {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 450;
 }
