@@ -1,84 +1,108 @@
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(11, 11, 11, 0.9);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid #1f1f1f;
+}
+
 .navbar-container {
     display: flex;
-    justify-content: center;
     align-items: center;
-    margin-left: 15%;
-    margin-right: 15%;
-    background-color: var(--primary-color);
-    border-radius: 10px;
-    box-shadow: 5px 5px 12px rgba(0, 0, 0, 0.3);
+    justify-content: space-between;
+    padding: 18px 120px;
+    gap: 24px;
+}
+
+.navbar-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .nav-links {
-    padding: 1rem 1.5rem;
     display: flex;
-    gap: 40px;
-    justify-content: space-between;
     align-items: center;
+    gap: 28px;
 }
 
 .navbar-item {
-    color: var(--secondary-text-color);
+    color: #d6d6d6;
     text-decoration: none;
-    font-weight: 600;
-    font-size: 16px;
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    transition: color 0.2s ease;
+}
+
+.navbar-item:hover {
+    color: #ffffff;
+}
+
+.nav-cta {
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 1px solid #ffffff;
+    color: #ffffff;
+}
+
+.nav-cta:hover {
+    background: #ffffff;
+    color: #0b0b0b;
 }
 
 .nav-toggle {
     display: none;
-    margin-top: 1rem;
     font-size: 24px;
     background: none;
     border: none;
-    color: var(--text-color);
+    color: #ffffff;
     cursor: pointer;
 }
 
 @media (max-width: 1200px) {
     .navbar-container {
-        margin-left: 10%;
-        margin-right: 10%;
+        padding: 18px 60px;
     }
 
     .nav-links {
-        padding: 1rem 0.5rem;
         gap: 20px;
-    }
-
-    .navbar-item {
-        font-size: 15px;
-        font-weight: 500;
     }
 }
 
-@media (max-width: 850px) {
+@media (max-width: 900px) {
     .navbar-container {
-        position: relative;
-        margin-left: 5%;
-        margin-right: 5%;
+        padding: 18px 24px;
+    }
+
+    .nav-toggle {
+        display: block;
     }
 
     .nav-links {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        left: 0;
+        background: #0b0b0b;
+        border-bottom: 1px solid #1f1f1f;
         display: none;
         flex-direction: column;
-        gap: 15px;
-        margin-top: 10px;
-        width: 100%;
-        text-align: center;
-    }
-
-    .nav-item {
-        font-weight: 700;
-        font-size: 17px;
+        padding: 20px 24px 28px;
+        gap: 16px;
     }
 
     .nav-links.show {
         display: flex;
     }
 
-    .nav-toggle {
-        display: block;
-        position: absolute;
-        right: 20px;
+    .nav-cta {
+        width: 100%;
+        text-align: center;
     }
 }

@@ -25,12 +25,16 @@ const NavBar: React.FC = () => {
   }, [menuOpen]);
 
   return (
-    <nav>
+    <nav className="navbar">
       <div className="navbar-container" ref={navRef}>
+        <Link to="/" className="navbar-brand">
+          ChainEstate
+        </Link>
         <button
           className="nav-toggle"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle navigation"
+          aria-expanded={menuOpen}
         >
           &#9776;
         </button>
@@ -53,7 +57,7 @@ const NavBar: React.FC = () => {
           <Link to="/faqs" className="navbar-item">
             FAQs
           </Link>
-          <Link to="/connect-wallet" className="navbar-item">
+          <Link to="/connect-wallet" className="navbar-item nav-cta">
             Connect Wallet
           </Link>
         </div>
