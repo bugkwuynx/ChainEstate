@@ -47,7 +47,6 @@ const steps = [
 const LandingPage: React.FC = () => {
   return (
     <>
-      <NavBar />
       <main className="landing-page">
         <section className="hero">
           <div className="hero-content">
