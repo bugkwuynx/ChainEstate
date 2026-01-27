@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import "./NavBar.css";
+import { ConnectWallet } from "../hooks/ConnectWallet";
 
 const NavBar: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -57,9 +58,7 @@ const NavBar: React.FC = () => {
           <Link to="/faqs" className="navbar-item">
             FAQs
           </Link>
-          <Link to="/connect-wallet" className="navbar-item nav-cta">
-            Connect Wallet
-          </Link>
+          <ConnectWallet />
         </div>
       </div>
     </nav>

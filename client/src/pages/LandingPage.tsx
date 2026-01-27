@@ -1,7 +1,7 @@
 import React from "react";
-import { NavBar } from "../components";
 import "./LandingPage.css";
 import { Link } from "react-router-dom";
+import { ConnectWallet } from "../hooks/ConnectWallet";
 
 const scrollToTarget = (targetId: string) => {
   const target = document.getElementById(targetId);
@@ -63,9 +63,7 @@ const LandingPage: React.FC = () => {
               <Link className="primary-button" to="/properties">
                 Explore Properties
               </Link>
-              <Link className="secondary-button" to="/sign-up">
-                Sign Up
-              </Link>
+              <ConnectWallet />
             </div>
             <div className="hero-links">
               <button
