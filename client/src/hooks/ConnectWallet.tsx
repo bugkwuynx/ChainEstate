@@ -1,10 +1,11 @@
 import { ethers } from "ethers";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const ConnectWallet = () => {
-    const [account, setAccount] = useState<string | null>(null);
     const [loggedIn, setLoggedIn] = useState(false);
-
+    const navigate = useNavigate();
+    
     const connectWallet = async () => {
         if (!window.ethereum) {
             alert("MetaMask is not installed. Please install it to use this app.");
@@ -16,8 +17,6 @@ export const ConnectWallet = () => {
             const account = accounts[0];
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
-            console.log("Connected to wallet:", account);
-            console.log("Signer:", signer);
 
             await loginWithWallet(account);
 
@@ -37,9 +36,9 @@ export const ConnectWallet = () => {
 
         try {
             const signature = await signer.signMessage(message);
-            console.log("Signature: ", signature);
-            console.log("Account: ", account);
             setLoggedIn(true);
+            localStorage.setItem("walletAddress", account);
+            navigate("/dashboard");
         } catch (error) {
             console.error("User rejected signature: ", error);
         }

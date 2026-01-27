@@ -1,3 +1,4 @@
 import LandingPage from "./LandingPage.tsx";
+import DashboardPage from "./DashboardPage.tsx";
 
-export { LandingPage };
+export { DashboardPage, LandingPage };
