@@ -1,7 +1,7 @@
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DashboardPage, LandingPage } from "./pages";
-import { NavBar } from "./components";
+import { NavBar, PropertyCard } from "./components";
 import { ProtectedRoute } from "./hooks/ProtectedRoute";
 
 function App() {
@@ -15,6 +15,7 @@ function App() {
             <DashboardPage />
           </ProtectedRoute>}>
         </Route>
+        <Route path="/property/0" element={<PropertyCard />}></Route>
       </Routes>
     </BrowserRouter>
   );

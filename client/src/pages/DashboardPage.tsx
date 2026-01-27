@@ -1,5 +1,6 @@
 import React from "react";
 import "./DashboardPage.css";
+import { useNavigate } from "react-router-dom";
 
 const ownedProperties = [
   {
@@ -98,6 +99,7 @@ const activity = [
 ];
 
 const DashboardPage: React.FC = () => {
+  const navigate = useNavigate();
   return (
     <main className="dashboard-page">
       <section className="dashboard-hero">
@@ -132,9 +134,9 @@ const DashboardPage: React.FC = () => {
             <span className="dashboard-chip">3 assets</span>
           </div>
           <div className="dashboard-list">
-            {ownedProperties.map((property) => (
+            {ownedProperties.map((property, index) => (
               <div className="dashboard-list-item" key={property.name}>
-                <div>
+                <div onClick={() => navigate(`/property/${index}`)} style={{ cursor: "pointer" }}>
                   <p className="dashboard-item-title">{property.name}</p>
                   <p className="dashboard-item-subtitle">
                     {property.location} · {property.share} ownership
@@ -152,9 +154,9 @@ const DashboardPage: React.FC = () => {
             <span className="dashboard-chip">3 open</span>
           </div>
           <div className="dashboard-list">
-            {activeOffers.map((offer) => (
+            {activeOffers.map((offer, index) => (
               <div className="dashboard-list-item" key={offer.property}>
-                <div>
+                <div onClick={() => navigate(`/property/${index}`)} style={{ cursor: "pointer" }}>
                   <p className="dashboard-item-title">{offer.property}</p>
                   <p className="dashboard-item-subtitle">
                     {offer.type} · {offer.status}
@@ -172,9 +174,9 @@ const DashboardPage: React.FC = () => {
             <span className="dashboard-chip">Watchlist</span>
           </div>
           <div className="dashboard-list">
-            {potentialProperties.map((property) => (
+            {potentialProperties.map((property, index) => (
               <div className="dashboard-list-item" key={property.name}>
-                <div>
+                <div onClick={() => navigate(`/property/${index}`)} style={{ cursor: "pointer" }}>
                   <p className="dashboard-item-title">{property.name}</p>
                   <p className="dashboard-item-subtitle">
                     {property.location} · {property.projectedYield} yield
