@@ -1,5 +1,5 @@
-import type { QueryOptions, QueryResult, UpdateQueryOptions } from "./queryOptions.types.js";
-import { camelToSnake } from "../utils/camelToSnakeCase.js";
+import type { QueryOptions, QueryResult, UpdateQueryOptions } from "./queryOptions.types";
+const {camelToSnake} = require("../utils/camelToSnakeCase");
 
 export const buildSelectQuery = (options: QueryOptions): QueryResult => {
     const {where = {}, orderBy, limit, offset} = options;
