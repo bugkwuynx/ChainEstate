@@ -1,11 +1,15 @@
 import type { User } from "./User.types";
 
+export interface Image {
+    id: string;
+    propertyId: Property['id'];
+    imageUrl: string;
+}
+
 export interface Property {
     id: string;
     tokenId: string;
     ownerAddress: User['walletAddress'];
-    history: PropertyHistoryEntry[];
-    images: string[];
     title: string;
     description: string | null;
     country: string;
@@ -17,6 +21,11 @@ export interface Property {
     isVerified: boolean;
     ipfsMetadataUri: string | null;
     createdAt: Date;
+}
+
+export interface PropertyDetail extends Property {
+    history: PropertyHistoryEntry[];
+    images: Image[];
 };
 
 export interface PropertyDocument {
@@ -31,6 +40,8 @@ export interface Listing extends Property {
     sellerAddress: User['walletAddress'];
     priceWei: number;
     isActive: boolean;
+    createdAt: Date,
+    closedAt: Date
 }
 
 export interface PropertyHistoryEntry {

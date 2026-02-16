@@ -1,6 +1,6 @@
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { DashboardPage, LandingPage } from "./pages";
+import { DashboardPage, LandingPage, PropertiesPage } from "./pages";
 import { NavBar, PropertyCard } from "./components";
 import { ProtectedRoute } from "./hooks/ProtectedRoute";
 
@@ -10,6 +10,7 @@ function App() {
       <NavBar />
       <Routes>
         <Route path="/" element={<LandingPage />}></Route>
+        <Route path="/properties" element={<PropertiesPage />}></Route>
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <DashboardPage />
