@@ -1,5 +1,4 @@
 import {ethers} from 'ethers';
-import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -40,7 +39,6 @@ export const loginWithWallet = async() => {
         }
 
         const {nonce} = await nonceResult.json();
-        console.log(nonce);
 
         // 3. Sign Nonce
         const signature = await signNonce(walletAddress, nonce);
@@ -69,7 +67,6 @@ export const loginWithWallet = async() => {
         // 5. Store Token
         localStorage.setItem("token", token);
         localStorage.setItem("userId", userId);
-        console.log(token);
 
         return result;
     } catch(error) {
