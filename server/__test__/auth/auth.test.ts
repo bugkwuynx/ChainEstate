@@ -1,4 +1,6 @@
-const { register, login } = require("../../controllers/auth/auth.ctrl");
+import { Wallet } from "ethers";
+
+const { getNonce, login } = require("../../controllers/auth/auth.controller");
 const { getUsers, createUser, updateUserNonce } = require("../../services/users/users.service");
 const { v4: uuidv4 } = require("uuid");
 const { Role } = require("../../types/users.types");
@@ -12,13 +14,13 @@ jest.mock("uuid");
 jest.mock("jsonwebtoken");
 jest.mock("ethers");
 
-describe("register controller", () => {
+describe('getNonce controller', () => {
     const mockResult = () => {
         const res: any = {};
         res.status = jest.fn().mockReturnValue(res);
         res.json = jest.fn().mockReturnValue(res);
         return res;
-    };
+    }
 
     const mockRequest = (body: any) => ({
         body
@@ -26,82 +28,99 @@ describe("register controller", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        process.env.JWT_SECRET = 'test-secret';
     });
 
-    it("return 400 if walletAddress is missing", async() => {
-        const req = mockRequest({});
+    it('return 400 if wallet address is empty', async() => {
+        const req = {
+            query: {}
+        };
         const res = mockResult();
-
-        await register(req as any, res);
-
+        await getNonce(req, res);
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({
-            message: "Wallet address is required"
+            message: 'Wallet address required'
         });
     });
 
-    it("return 400 if user already exists", async() => {
-        const req = mockRequest({walletAddress: "0xABC"});
+    it('create a new user if not found and return nonce', async() => {
+        const req = {
+            query: {walletAddress: '0xABC'}
+        };
         const res = mockResult();
+        (getUsers as jest.Mock).mockResolvedValue([]);
+        (uuidv4 as jest.Mock)
+            .mockReturnValueOnce('initial-nonce')
+            .mockReturnValueOnce('updated-nonce');
+        (createUser as jest.Mock).mockResolvedValue({
+            id: 1,
+            walletAddress: '0xabc',
+            nonce: 'initial-nonce',
+            nonceExpiresAt: new Date(),
+            role: Role.USER,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        });
 
-        (getUsers as jest.Mock).mockResolvedValue({id: 1});
+        (updateUserNonce as jest.Mock).mockResolvedValue(true);
 
-        await register(req as any, res);
+        await getNonce(req, res);
 
         expect(getUsers).toHaveBeenCalledWith({
-            where: {walletAddress: "0xabc"}
+            where: {walletAddress: '0xabc'}
         });
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith({
-            message: "User already exists"
-        });
-    });
-
-    it("cretae user and return 201", async() => {
-        const req = mockRequest({walletAddress: "0xABC"});
-        const res = mockResult();
-
-        (getUsers as jest.Mock).mockResolvedValue(null);
-        (uuidv4 as jest.Mock).mockReturnValue("mocked-nonce");
-
-        const mockCreateUser = {
-            id: 1,
-            walletAddress: "0xabc",
-            role: Role.USER,
-            nonce: "mocked-nonce"
-        };
-
-        (createUser as jest.Mock).mockResolvedValue(mockCreateUser);
-
-        await register(req as any, res);
 
         expect(createUser).toHaveBeenCalledWith({
-            walletAddress: "0xabc",
+            walletAddress: '0xabc',
             role: Role.USER,
-            nonce: "mocked-nonce"
+            nonce: 'initial-nonce'
         });
 
-        expect(res.status).toHaveBeenCalledWith(201);
-        expect(res.json).toHaveBeenCalledWith(mockCreateUser);
+        expect(updateUserNonce).toHaveBeenCalledWith({
+            userId: 1,
+            newNonce: 'updated-nonce',
+            nonceExpiresAt: expect.any(Date)
+        });
+
+        expect(res.json).toHaveBeenCalledWith({
+            nonce: 'updated-nonce',
+        });
     });
 
-    it("should return 500 if an error occurs", async() => {
-        const req = mockRequest({walletAddress: "0xABC"});
+    it('update nonce for existing user', async() => {
+        const req = {
+            query: {walletAddress: '0xDEF'}
+        };
+
         const res = mockResult();
 
-        (getUsers as jest.Mock).mockRejectedValue(new Error("DB failure"));
+        (getUsers as jest.Mock).mockResolvedValue([
+            {
+                id: 2,
+                WalletAddress: '0xdef',
+                role: Role.USER
+            }
+        ]);
 
-        await register(req as any, res);
+        (uuidv4 as jest.Mock).mockReturnValue('new-nonce');
 
-        expect(res.status).toHaveBeenCalledWith(500);
-        expect(res.json).toHaveBeenCalledWith(
-            expect.objectContaining({
-                message: expect.stringContaining("Internal server error")
-            })
-        );
+        (updateUserNonce as jest.Mock).mockResolvedValue(true);
+
+        await getNonce(req, res);
+
+        expect(createUser).not.toHaveBeenCalled();
+
+        expect(updateUserNonce).toHaveBeenCalledWith({
+            userId: 2,
+            newNonce: 'new-nonce',
+            nonceExpiresAt: expect.any(Date)
+        });
+
+        expect(res.json).toHaveBeenCalledWith({
+            nonce: 'new-nonce',
+        });
     });
-});
+})
 
 describe("login controller", () => {
     const mockResult = () => {

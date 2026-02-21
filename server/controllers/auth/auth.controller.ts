@@ -10,52 +10,19 @@ const {
 
 const { Role } = require("../../types/users.types");
 
-import type { Response } from "express";
+import type { Request, Response } from "express";
 import type {
   RegisterRequest,
   LoginRequest,
   User,
   LoginResponse,
+  getNonceRequest
 } from "../../types/users.types";
-
-
-export const register = async(
-    req: RegisterRequest,
-    res: Response<User | {message: string}>
-) => {
-    try {
-        const {walletAddress} = req.body;
-        if (!walletAddress) {
-            return res.status(400).json({message: `Wallet address is required`});
-        }
-        
-        const normalizedAddress = walletAddress.toLowerCase();
-        const existingUser = await getUsers({
-            where: {walletAddress: normalizedAddress}
-        });
-
-        if (existingUser) {
-            return res.status(400).json({message: `User already exists`});
-        }
-
-        const nonce = uuidv4();
-        const createUserResult = await createUser({
-            walletAddress: normalizedAddress,
-            role: Role.USER,
-            nonce
-        });
-
-        res.status(201).json(createUserResult);
-    } catch(error) {
-        res.status(500).json({
-            message: `Internal server error: ${error}`
-        });
-    }
-};
 
 export const login = async(req: LoginRequest, res: Response<LoginResponse | null | {message: string}>) => {
     try {
         const {walletAddress, signature} = req.body;
+
         const normalizedAddress = walletAddress.toLowerCase();
         
         const getUsersResult: User[] = await getUsers({
@@ -66,9 +33,13 @@ export const login = async(req: LoginRequest, res: Response<LoginResponse | null
             return res.status(400).json({message: "User not found"});
         }
 
+        //console.log(getUsersResult);
+
         const user: User = getUsersResult[0] as User;
 
         const now = new Date();
+        // console.log(now);
+        // console.log(user);
         if (!user.nonceExpiresAt || now > user.nonceExpiresAt) {
             return res.status(400).json({message: "Nonce has expired. Please request a new login"});
         }
@@ -98,5 +69,49 @@ export const login = async(req: LoginRequest, res: Response<LoginResponse | null
 
     } catch(error) {
         res.status(500).json({message: `Internal server error: ${error}`});
+    }
+};
+
+export const getNonce = async(
+    req: Request<{}, {}, {}, {walletAddress: string}>,
+    res: Response<{nonce: string} | {message: string}>
+) => {
+    try {
+        const {walletAddress} = req.query;
+        
+        if (!walletAddress || typeof walletAddress !== 'string') {
+            return res.status(400).json({message: 'Wallet address required'});
+        }
+
+        const normalizedAddress = walletAddress.toLowerCase();
+
+        const getUserResult: User[] = await getUsers({
+            where: {walletAddress: normalizedAddress}
+        });
+
+        let user: User;
+        if (!getUserResult || getUserResult.length === 0) {
+            const nonce = uuidv4();
+            user = await createUser({
+                walletAddress: normalizedAddress,
+                role: Role.USER,
+                nonce
+            });
+        } else {
+            user = getUserResult[0] as User;
+        }
+
+        const nonce = uuidv4();
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+        const updateUserNonceResult = await updateUserNonce({
+            userId: user.id,
+            newNonce: nonce,
+            nonceExpiresAt: expiresAt
+        });
+
+        return res.json({nonce});
+
+    } catch(error) {
+        return res.status(500).json({message: `Internal server error: ${error}`});
     }
 };

@@ -1,7 +1,7 @@
 import type {NewUser, UpdateNonceRequest, User} from "../../types/users.types";
 import type { QueryOptions } from "../../database/queryOptions.types";
 const {buildSelectQuery, buildUpdateQuery} = require("../../database/queryBuilder");
-const {sql} = require("../../database/db");
+const {pool} = require("../../database/db");
 
 export const createUser = async(newUser: NewUser): Promise<User> => {
     const query = `
@@ -11,9 +11,7 @@ export const createUser = async(newUser: NewUser): Promise<User> => {
             nonce
         )
         VALUES (
-            ${newUser.walletAddress},
-            ${newUser.role},
-            ${newUser.nonce}
+            $1, $2, $3
         )
         RETURNING
             id,
@@ -25,11 +23,12 @@ export const createUser = async(newUser: NewUser): Promise<User> => {
             updated_at AS "updatedAt"
     `;
 
-    const result = await sql`${query}`;
+    const values = [newUser.walletAddress, newUser.role, newUser.nonce];
+    const result = await pool.query(query, values);
     if (result && result.length === 0) {
         throw new Error(`Failed to create user`);
     }
-    return result[0] as User;
+    return result.rows[0] as User;
 };
 
 export const getUsers = async(
@@ -41,29 +40,33 @@ export const getUsers = async(
             id,
             wallet_address AS "walletAddress",
             role AS "role",
+            nonce,
+            nonce_expires_at AS "nonceExpiresAt",
             created_at AS "createdAt",
             updated_at AS "updatedAt"
         FROM users ${queryClause}
     `;
-    const getUsersResult = await sql.unsafe(query, values);
-    return getUsersResult as unknown as User[];
+    const getUsersResult = await pool.query(query, values);
+    return getUsersResult.rows as unknown as User[];
 }
 
 export const updateUserNonce = async(updatedNonce: UpdateNonceRequest): Promise<User> => {
     const query = `
         UPDATE users
-        SET nonce = ${updatedNonce.newNonce},
-            nonce_expires_at = ${updatedNonce.nonceExpiresAt}
-        WHERE id = ${updatedNonce.userId}
+        SET nonce = $1,
+            nonce_expires_at = $2
+        WHERE id = $3
         RETURNING
             id,
             wallet_address AS "walletAddress",
             role AS "role",
             nonce,
-            nonce_expires_at AS "nonceExpiresAt"
+            nonce_expires_at AS "nonceExpiresAt",
             created_at AS "createdAt",
             updated_at AS "updatedAt"
     `;
-    const updateUserNonceResult = await sql`${query}`;
-    return updateUserNonceResult[0] as User;
+    
+    const value = [updatedNonce.newNonce, updatedNonce.nonceExpiresAt, updatedNonce.userId];
+    const updateUserNonceResult = await pool.query(query, value);
+    return updateUserNonceResult.rows[0] as User;
 };

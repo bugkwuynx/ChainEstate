@@ -1,5 +1,3 @@
-import postgres from "postgres";
+import {Pool} from 'pg';
 
-const connectionString = process.env.DATABASE_URL!;
-
-export const sql = postgres(connectionString);
+export const pool = new Pool({connectionString: process.env.SUPABASE_DB_URL});

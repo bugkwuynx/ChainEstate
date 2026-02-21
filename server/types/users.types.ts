@@ -32,6 +32,12 @@ export interface GetUsersRequest extends Request {
     }
 }
 
+export interface getNonceRequest extends Request {
+    query: {
+        walletAddress: string
+    }
+}
+
 export interface LoginRequest extends Request {
     body: {
         walletAddress: string;
