@@ -8,6 +8,7 @@ import type {IncomingMessage, ServerResponse} from "http";
 dotenv.config();
 
 import authRouter from "./routes/auth/auth.router.js";
+import propertiesRouter from "./routes/properties/properties.router.js";
 
 export const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,6 +33,7 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
 }
 
 app.use("/auth", authRouter);
+app.use("/properties", authenticateJWT, propertiesRouter);
 
 app.get("/protected", authenticateJWT, (req, res) => {
     res.send("This is a protected route!");

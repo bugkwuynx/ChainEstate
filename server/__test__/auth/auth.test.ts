@@ -146,7 +146,7 @@ describe("login controller", () => {
         });
         const res = mockResult();
 
-        getUsers.mockResolvedValue([]);
+        (getUsers as jest.Mock).mockResolvedValue([]);
 
         await login(req, res);
 
@@ -163,7 +163,7 @@ describe("login controller", () => {
         });
         const res = mockResult();
 
-        getUsers.mockResolvedValue([{
+        (getUsers as jest.Mock).mockResolvedValue([{
             id: "1",
             nonce: "mock-nonce",
             nonceExpiresAt: new Date(Date.now() - 1000),
@@ -192,7 +192,7 @@ describe("login controller", () => {
             role: Role.USER
         };
 
-        getUsers.mockResolvedValue([user]);
+        (getUsers as jest.Mock).mockResolvedValue([user]);
 
         ethers.verifyMessage.mockReturnValue("0xWRONG");
 
@@ -218,7 +218,7 @@ describe("login controller", () => {
             role: Role.USER
         };
 
-        getUsers.mockResolvedValue([user]);
+        (getUsers as jest.Mock).mockResolvedValue([user]);
 
         ethers.verifyMessage.mockReturnValue("0xabc");
         uuidv4.mockReturnValue("new-nonce");
