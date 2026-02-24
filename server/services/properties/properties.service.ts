@@ -36,7 +36,7 @@ export const createProperty = async(newProperty: NewProperty): Promise<Property>
             size_sqft AS "sizeSqft",
             year_built AS "yearBuilt",
             is_verified AS "isVerified",
-            ipfs_metadata_uri AS "ipfsMetadataUri"
+            ipfs_metadata_uri AS "ipfsMetadataUri",
             created_at AS "createdAt"
     `;
 
@@ -67,7 +67,7 @@ export const getPropertyById = async(propertyId: string): Promise<Property | nul
             size_sqft AS "sizeSqft",
             year_built AS "yearBuilt",
             is_verified AS "isVerified",
-            ipfs_metadata_uri AS "ipfsMetadataUri"
+            ipfs_metadata_uri AS "ipfsMetadataUri",
             created_at AS "createdAt"
         FROM properties
         WHERE id = $1
@@ -101,10 +101,12 @@ export const getProperties = async(queryOptions: QueryOptions): Promise<Property
             size_sqft AS "sizeSqft",
             year_built AS "yearBuilt",
             is_verified AS "isVerified",
-            ipfs_metadata_uri AS "ipfsMetadataUri"
+            ipfs_metadata_uri AS "ipfsMetadataUri",
             created_at AS "createdAt"
         FROM properties ${queryClause}
     `;
+
+    console.log(query);
     
     const getPropertiesResult = await pool.query(query, values);
 
@@ -138,7 +140,7 @@ export const updateProperty = async(
             size_sqft AS "sizeSqft",
             year_built AS "yearBuilt",
             is_verified AS "isVerified",
-            ipfs_metadata_uri AS "ipfsMetadataUri"
+            ipfs_metadata_uri AS "ipfsMetadataUri",
             created_at AS "createdAt"      
     `;
 

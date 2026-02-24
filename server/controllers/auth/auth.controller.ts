@@ -19,6 +19,20 @@ import type {
   getNonceRequest
 } from "../../types/users.types";
 
+export const loginTest = async(req: Request, res: Response) => {
+    const payload = {
+        walletAddress: "0xTestWallet123",
+    };
+
+    const token = jwt.sign(
+        payload,
+        process.env.JWT_SECRET as string,
+        { expiresIn: "7d" }
+    );
+
+    return res.json({ token });
+}
+
 export const login = async(req: LoginRequest, res: Response<LoginResponse | null | {message: string}>) => {
     try {
         const {walletAddress, signature} = req.body;
@@ -33,13 +47,13 @@ export const login = async(req: LoginRequest, res: Response<LoginResponse | null
             return res.status(400).json({message: "User not found"});
         }
 
-        //console.log(getUsersResult);
+        console.log(getUsersResult);
 
         const user: User = getUsersResult[0] as User;
 
         const now = new Date();
-        // console.log(now);
-        // console.log(user);
+        console.log(now);
+        console.log(user);
         if (!user.nonceExpiresAt || now > user.nonceExpiresAt) {
             return res.status(400).json({message: "Nonce has expired. Please request a new login"});
         }

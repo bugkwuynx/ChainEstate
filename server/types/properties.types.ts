@@ -62,6 +62,7 @@ export interface CreatePropertyRequest extends Request {
 
 export interface GetPropertiesRequest extends Request {
     query: {
+        ownerId?: string,
         title?: string;
         country?: string;
         city?: string;
