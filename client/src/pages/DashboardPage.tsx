@@ -1,27 +1,33 @@
 import React from "react";
 import "./DashboardPage.css";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import type { Property } from "@/types/Property.types";
 
-const ownedProperties = [
-  {
-    name: "Soho Loft 12A",
-    location: "New York, NY",
-    share: "100%",
-    valuation: "$4.2M",
-  },
-  {
-    name: "Marina Residences",
-    location: "Dubai, UAE",
-    share: "35%",
-    valuation: "$1.1M",
-  },
-  {
-    name: "Montmartre Studio",
-    location: "Paris, FR",
-    share: "18%",
-    valuation: "$620K",
-  },
-];
+const API_URL = import.meta.env.VITE_API_URL;
+const token = localStorage.getItem("token");
+const userId = localStorage.getItem("userId");
+
+// const ownedProperties = [
+//   {
+//     name: "Soho Loft 12A",
+//     location: "New York, NY",
+//     share: "100%",
+//     valuation: "$4.2M",
+//   },
+//   {
+//     name: "Marina Residences",
+//     location: "Dubai, UAE",
+//     share: "35%",
+//     valuation: "$1.1M",
+//   },
+//   {
+//     name: "Montmartre Studio",
+//     location: "Paris, FR",
+//     share: "18%",
+//     valuation: "$620K",
+//   },
+// ];
 
 const activeOffers = [
   {
@@ -98,8 +104,38 @@ const activity = [
   },
 ];
 
+const getOwnedProperties = async (): Promise<Property[]> => {
+  const getOwnedPropertiesResult = await fetch(
+    `${API_URL}/properties?ownerId=${userId}`,
+    {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
+
+  if (!getOwnedPropertiesResult.ok) {
+    throw new Error("Error fetching owned properties");
+  }
+
+  const ownedProperties: Property[] = await getOwnedPropertiesResult.json();
+
+  return ownedProperties.slice(0, 3);
+};
+
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [ownedProperties, setOwnedProperties] = useState<Property[]>([]);
+
+  useEffect(() => {
+    console.log(token);
+    getOwnedProperties()
+      .then(setOwnedProperties)
+      .catch((error) => setError(error.message))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <main className="dashboard-page">
       <section className="dashboard-hero">
@@ -107,8 +143,8 @@ const DashboardPage: React.FC = () => {
           <p className="dashboard-eyebrow">User Dashboard</p>
           <h1 className="dashboard-title">Welcome back, Alexis.</h1>
           <p className="dashboard-subtitle">
-            Monitor owned properties, manage bids, and track activity across your
-            on-chain portfolio.
+            Monitor owned properties, manage bids, and track activity across
+            your on-chain portfolio.
           </p>
         </div>
         <div className="dashboard-summary">
@@ -131,18 +167,32 @@ const DashboardPage: React.FC = () => {
         <div className="dashboard-card">
           <div className="dashboard-card-header">
             <h2>Owned Properties</h2>
-            <span className="dashboard-chip">3 assets</span>
+            <div className="dashboard-card-header-actions">
+              <span className="dashboard-chip">3 assets</span>
+              <button
+                type="button"
+                className="dashboard-btn-add"
+                onClick={() => navigate("/property/add")}
+              >
+                Add property
+              </button>
+            </div>
           </div>
           <div className="dashboard-list">
             {ownedProperties.map((property, index) => (
-              <div className="dashboard-list-item" key={property.name}>
-                <div onClick={() => navigate(`/property/${index}`)} style={{ cursor: "pointer" }}>
-                  <p className="dashboard-item-title">{property.name}</p>
+              <div className="dashboard-list-item" key={property.title}>
+                <div
+                  onClick={() => navigate(`/property/${index}`)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <p className="dashboard-item-title">{property.title}</p>
                   <p className="dashboard-item-subtitle">
-                    {property.location} · {property.share} ownership
+                    {property.addressLine} · {property.city}
                   </p>
                 </div>
-                <span className="dashboard-item-value">{property.valuation}</span>
+                <span className="dashboard-item-value">
+                  {property.yearBuilt}
+                </span>
               </div>
             ))}
           </div>
@@ -156,7 +206,10 @@ const DashboardPage: React.FC = () => {
           <div className="dashboard-list">
             {activeOffers.map((offer, index) => (
               <div className="dashboard-list-item" key={offer.property}>
-                <div onClick={() => navigate(`/property/${index}`)} style={{ cursor: "pointer" }}>
+                <div
+                  onClick={() => navigate(`/property/${index}`)}
+                  style={{ cursor: "pointer" }}
+                >
                   <p className="dashboard-item-title">{offer.property}</p>
                   <p className="dashboard-item-subtitle">
                     {offer.type} · {offer.status}
@@ -176,7 +229,10 @@ const DashboardPage: React.FC = () => {
           <div className="dashboard-list">
             {potentialProperties.map((property, index) => (
               <div className="dashboard-list-item" key={property.name}>
-                <div onClick={() => navigate(`/property/${index}`)} style={{ cursor: "pointer" }}>
+                <div
+                  onClick={() => navigate(`/property/${index}`)}
+                  style={{ cursor: "pointer" }}
+                >
                   <p className="dashboard-item-title">{property.name}</p>
                   <p className="dashboard-item-subtitle">
                     {property.location} · {property.projectedYield} yield

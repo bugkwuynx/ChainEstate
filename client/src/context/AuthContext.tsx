@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
 import { loginWithWallet } from "@/services/auth.service";
+import { useNavigate } from "react-router-dom";
 
 interface AuthContextType {
   userId: string | null;
@@ -10,6 +11,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: any) => {
+  const navigate = useNavigate();
+
   const [userId, setUserId] = useState<string | null>(
     localStorage.getItem("userId"),
   );
@@ -17,12 +20,15 @@ export const AuthProvider = ({ children }: any) => {
   const login = async () => {
     const data = await loginWithWallet();
     setUserId(data.userId);
+    localStorage.setItem("userId", data.userId);
+    navigate("/dashboard", { replace: true });
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
     setUserId(null);
+    navigate("/", { replace: true });
   };
 
   return (

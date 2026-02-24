@@ -84,6 +84,33 @@
     gap: 12px;
 }
 
+.dashboard-card-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dashboard-btn-add {
+    background: #f7f7f7;
+    color: #0b0b0b;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.dashboard-btn-add:hover {
+    background: #e0e0e0;
+}
+
+.dashboard-btn-add:active {
+    transform: scale(0.98);
+}
+
 .dashboard-card-header h2 {
     margin: 0;
     font-size: 18px;

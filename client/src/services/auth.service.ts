@@ -47,7 +47,6 @@ export const loginWithWallet = async() => {
             throw new Error('Signature failed');
         }
 
-        console.log(signature);
         // 4. Send to Login Endpoint
         const loginResult = await fetch(`${API_URL}/auth/login`, {
                 method: 'POST',
@@ -55,6 +54,8 @@ export const loginWithWallet = async() => {
                 body: JSON.stringify({walletAddress, signature}),
             }
         );
+
+        console.log(loginResult);
 
         if (!loginResult.ok) {
             throw new Error('Invalid login response from server');

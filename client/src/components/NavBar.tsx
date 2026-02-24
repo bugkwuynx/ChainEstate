@@ -46,8 +46,8 @@ const NavBar: React.FC = () => {
           <Link to="/properties" className="navbar-item">
             Properties
           </Link>
-          <Link to="/my-portfolio" className="navbar-item">
-            My Portfolio
+          <Link to="/dashboard" className="navbar-item">
+            Dashboard
           </Link>
           <Link to="/invest" className="navbar-item">
             Invest

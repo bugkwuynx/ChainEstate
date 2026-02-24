@@ -6,10 +6,9 @@ export interface Image {
     imageUrl: string;
 }
 
-export interface Property {
-    id: string;
-    tokenId: string;
-    ownerAddress: User['walletAddress'];
+export interface NewProperty {
+    tokenAddress: string;
+    ownerId: User['walletAddress'];
     title: string;
     description: string | null;
     country: string;
@@ -18,6 +17,10 @@ export interface Property {
     propertyType: string;
     sizeSqft: number;
     yearBuilt: number;
+}
+
+export interface Property extends NewProperty {
+    id: string;
     isVerified: boolean;
     ipfsMetadataUri: string | null;
     createdAt: Date;
@@ -49,4 +52,4 @@ export interface PropertyHistoryEntry {
     event: string;
     owner: User['walletAddress'];
     priceWei?: number;
-  };
+};
