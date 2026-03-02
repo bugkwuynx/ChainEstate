@@ -9,8 +9,8 @@ import { QueryOptions, UpdateQueryOptions } from "../../database/queryOptions.ty
 export const createProperty = async(newProperty: NewProperty): Promise<Property> => {
     const query = `
         INSERT INTO properties (
-            token_address,
             owner_id,
+            token_address,
             title,
             description,
             country,
@@ -18,7 +18,7 @@ export const createProperty = async(newProperty: NewProperty): Promise<Property>
             address_line,
             property_type,
             size_sqft,
-            year_built,
+            year_built
         )
         VALUES (
             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
@@ -39,15 +39,19 @@ export const createProperty = async(newProperty: NewProperty): Promise<Property>
             ipfs_metadata_uri AS "ipfsMetadataUri",
             created_at AS "createdAt"
     `;
+    console.log(query);
+    console.log(newProperty);
 
     const keys = Object.keys(newProperty);
     const values = keys.map(key => newProperty[key as keyof typeof newProperty]);
-
+    console.log(values);
     const result = await pool.query(query, values);
 
     if (!result || result.rows.length === 0) {
         throw new Error(`Failed to create property`);
     }
+
+    console.log(result.rows[0]);
 
     return result.rows[0] as Property;
 }
@@ -105,8 +109,6 @@ export const getProperties = async(queryOptions: QueryOptions): Promise<Property
             created_at AS "createdAt"
         FROM properties ${queryClause}
     `;
-
-    console.log(query);
     
     const getPropertiesResult = await pool.query(query, values);
 
@@ -143,6 +145,8 @@ export const updateProperty = async(
             ipfs_metadata_uri AS "ipfsMetadataUri",
             created_at AS "createdAt"      
     `;
+
+    console.log(query);
 
     const values = [...Object.values(updateProperty), propertyId];
 

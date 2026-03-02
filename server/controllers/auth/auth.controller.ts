@@ -47,8 +47,6 @@ export const login = async(req: LoginRequest, res: Response<LoginResponse | null
             return res.status(400).json({message: "User not found"});
         }
 
-        console.log(getUsersResult);
-
         const user: User = getUsersResult[0] as User;
 
         const now = new Date();
@@ -76,7 +74,7 @@ export const login = async(req: LoginRequest, res: Response<LoginResponse | null
         const token: string = jwt.sign(
             {userId: user.id, role: user.role},
             process.env.JWT_SECRET!,
-            {expiresIn: "5 minutes"}
+            {expiresIn: "7d"}
         );
 
         return res.json({userId: user.id, token});

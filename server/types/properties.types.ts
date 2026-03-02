@@ -8,7 +8,7 @@ export interface Image {
 }
 
 export interface NewProperty {
-    tokenAddress: string;
+    tokenAddress: string | null;
     ownerId: User['walletAddress'];
     title: string;
     description: string | null;
@@ -18,12 +18,12 @@ export interface NewProperty {
     propertyType: string;
     sizeSqft: number;
     yearBuilt: number;
+    ipfsMetadataUri: string | null;
 }
 
 export interface Property extends NewProperty {
     id: string;
     isVerified: boolean;
-    ipfsMetadataUri: string | null;
     createdAt: Date;
 }
 
