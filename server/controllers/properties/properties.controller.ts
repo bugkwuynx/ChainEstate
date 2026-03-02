@@ -109,7 +109,7 @@ export const updatePropertyHandler = async(
     res: Response<Property | {message: string}>
 ) => {
     try {
-        const {propertyId} = req.params;
+        const propertyId = req.params.propertyId;
         const updates = req.body;
 
         if (!propertyId) {

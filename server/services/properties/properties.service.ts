@@ -146,8 +146,6 @@ export const updateProperty = async(
             created_at AS "createdAt"      
     `;
 
-    console.log(query);
-
     const values = [...Object.values(updateProperty), propertyId];
 
     const updatePropertyResult = await pool.query(query, values);

@@ -9,8 +9,8 @@ import {
 const propertiesRouter = Router();
 
 propertiesRouter.post("/", createPropertyHandler);
-propertiesRouter.get("/:id", getPropertyByIdHandler);
+propertiesRouter.get("/:propertyId", getPropertyByIdHandler);
 propertiesRouter.get("/", getPropertiesHandler);
-propertiesRouter.patch("/:id", updatePropertyHandler);
+propertiesRouter.patch("/:propertyId", updatePropertyHandler);
 
 export default propertiesRouter;

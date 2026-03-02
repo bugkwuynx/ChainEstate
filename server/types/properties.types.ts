@@ -40,14 +40,6 @@ export interface PropertyDocument {
     createdAt: Date;
 }
 
-export interface Listing extends Property {
-    sellerAddress: User['walletAddress'];
-    priceWei: number;
-    isActive: boolean;
-    createdAt: Date,
-    closedAt: Date
-}
-
 export interface PropertyHistoryEntry {
     date: string;
     event: string;
