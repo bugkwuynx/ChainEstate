@@ -3,31 +3,9 @@ import "./DashboardPage.css";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import type { Property } from "@/types/Property.types";
+import { useAuth } from "@/context/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
-const token = localStorage.getItem("token");
-const userId = localStorage.getItem("userId");
-
-// const ownedProperties = [
-//   {
-//     name: "Soho Loft 12A",
-//     location: "New York, NY",
-//     share: "100%",
-//     valuation: "$4.2M",
-//   },
-//   {
-//     name: "Marina Residences",
-//     location: "Dubai, UAE",
-//     share: "35%",
-//     valuation: "$1.1M",
-//   },
-//   {
-//     name: "Montmartre Studio",
-//     location: "Paris, FR",
-//     share: "18%",
-//     valuation: "$620K",
-//   },
-// ];
 
 const activeOffers = [
   {
@@ -105,6 +83,13 @@ const activity = [
 ];
 
 const getOwnedProperties = async (): Promise<Property[]> => {
+  const token = localStorage.getItem("token");
+  const userId = localStorage.getItem("userId");
+
+  if (!token || !userId) {
+    throw new Error("User not authenticated");
+  }
+
   const getOwnedPropertiesResult = await fetch(
     `${API_URL}/properties?ownerId=${userId}`,
     {
@@ -112,6 +97,10 @@ const getOwnedProperties = async (): Promise<Property[]> => {
       headers: { Authorization: `Bearer ${token}` },
     },
   );
+
+  if (getOwnedPropertiesResult.status === 401) {
+    throw new Error("Token expired or unauthorized");
+  }
 
   if (!getOwnedPropertiesResult.ok) {
     throw new Error("Error fetching owned properties");
@@ -124,15 +113,21 @@ const getOwnedProperties = async (): Promise<Property[]> => {
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [ownedProperties, setOwnedProperties] = useState<Property[]>([]);
 
   useEffect(() => {
-    console.log(token);
     getOwnedProperties()
       .then(setOwnedProperties)
-      .catch((error) => setError(error.message))
+      .catch((error) => {
+        if (error.message === "Token expired or unauthorized") {
+          logout();
+        } else {
+          setError(error.message);
+        }
+      })
       .finally(() => setLoading(false));
   }, []);
 

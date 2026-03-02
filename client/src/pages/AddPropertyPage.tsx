@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import "./AddPropertyPage.css";
 import type { NewProperty } from "@/types/Property.types";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const PROPERTY_TYPES = [
   "House",
   "Apartment",
@@ -14,7 +16,8 @@ const PROPERTY_TYPES = [
   "Other",
 ];
 
-const initialForm: Omit<NewProperty, "ownerId"> = {
+const initialForm: NewProperty = {
+  ownerId: "",
   tokenAddress: "",
   title: "",
   description: "",
@@ -28,7 +31,7 @@ const initialForm: Omit<NewProperty, "ownerId"> = {
 
 const AddPropertyPage: React.FC = () => {
   const navigate = useNavigate();
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState<NewProperty>(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,13 +73,37 @@ const AddPropertyPage: React.FC = () => {
 
     setSubmitting(true);
     setError(null);
-    try{
+    try {
       /**
        * CALLING API HERE
        */
+      const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userId");
+      console.log(form);
+      if (!userId) {
+        throw new Error("User ID is required.");
+      }
+      form.ownerId = localStorage.getItem("userId") ?? "";
+      console.log(token);
+      const addPropertyResult = await fetch(`${API_URL}/properties`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(form),
+      });
+      if (!addPropertyResult.ok) {
+        throw new Error("Failed to create property.");
+      }
+      const addPropertyData = await addPropertyResult.json();
+      console.log(addPropertyData);
+      console.log("Successfully add property");
       navigate("/dashboard", { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create property.");
+      setError(
+        err instanceof Error ? err.message : "Failed to create property.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -91,7 +118,11 @@ const AddPropertyPage: React.FC = () => {
         </p>
 
         <form className="add-property-form" onSubmit={handleSubmit}>
-          {error && <p className="add-property-error" role="alert">{error}</p>}
+          {error && (
+            <p className="add-property-error" role="alert">
+              {error}
+            </p>
+          )}
           <label className="add-property-label">
             Title <span className="add-property-required">*</span>
           </label>
@@ -174,7 +205,9 @@ const AddPropertyPage: React.FC = () => {
             className="add-property-input"
             min={1}
             value={form.sizeSqft || ""}
-            onChange={(e) => update("sizeSqft", e.target.value ? Number(e.target.value) : 0)}
+            onChange={(e) =>
+              update("sizeSqft", e.target.value ? Number(e.target.value) : 0)
+            }
             placeholder="e.g. 1200"
             required
           />
@@ -188,7 +221,9 @@ const AddPropertyPage: React.FC = () => {
             min={1800}
             max={new Date().getFullYear() + 1}
             value={form.yearBuilt || ""}
-            onChange={(e) => update("yearBuilt", e.target.value ? Number(e.target.value) : 0)}
+            onChange={(e) =>
+              update("yearBuilt", e.target.value ? Number(e.target.value) : 0)
+            }
             placeholder="e.g. 2020"
             required
           />

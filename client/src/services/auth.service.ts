@@ -65,6 +65,8 @@ export const loginWithWallet = async() => {
 
         const {token, userId} = result;
 
+        console.log(token);
+
         // 5. Store Token
         localStorage.setItem("token", token);
         localStorage.setItem("userId", userId);

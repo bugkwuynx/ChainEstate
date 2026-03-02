@@ -19,8 +19,10 @@ export const AuthProvider = ({ children }: any) => {
 
   const login = async () => {
     const data = await loginWithWallet();
+    console.log(data);
     setUserId(data.userId);
     localStorage.setItem("userId", data.userId);
+    localStorage.setItem("token", data.token);
     navigate("/dashboard", { replace: true });
   };
 
