@@ -111,16 +111,99 @@ const getOwnedProperties = async (): Promise<Property[]> => {
   return ownedProperties.slice(0, 3);
 };
 
+const getListedPropertyIds = async (): Promise<Set<string>> => {
+  const token = localStorage.getItem("token");
+  const userId = localStorage.getItem("userId");
+
+  if (!token || !userId) {
+    throw new Error("User not authenticated");
+  }
+
+  const response = await fetch(`${API_URL}/listings?sellerId=${userId}`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (response.status === 401) {
+    throw new Error("Token expired or unauthorized");
+  }
+
+  if (!response.ok) {
+    throw new Error("Error fetching listings");
+  }
+
+  const listings: { propertyId: string }[] = await response.json();
+  return new Set(listings.map((listing) => listing.propertyId));
+};
+
+type ModalType = "owned" | "offers" | "potential" | "transactions" | "activity" | null;
+
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [ownedProperties, setOwnedProperties] = useState<Property[]>([]);
+  const [activeModal, setActiveModal] = useState<ModalType>(null);
+  const [listingProperty, setListingProperty] = useState<Property | null>(null);
+  const [listingPrice, setListingPrice] = useState<string>("");
+  const [listingLoading, setListingLoading] = useState<boolean>(false);
+  const [listingError, setListingError] = useState<string | null>(null);
+  const [listedPropertyIds, setListedPropertyIds] = useState<Set<string>>(new Set());
+
+  const handleListProperty = async () => {
+    if (!listingProperty || !listingPrice) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      logout();
+      return;
+    }
+
+    setListingLoading(true);
+    setListingError(null);
+
+    try {
+      const response = await fetch(`${API_URL}/listings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          propertyId: listingProperty.id,
+          sellerId: localStorage.getItem("userId") ?? "",
+          priceWei: parseFloat(listingPrice),
+          isActive: true,
+        }),
+      });
+
+      if (response.status === 401) {
+        logout();
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to create listing");
+      }
+
+      setListedPropertyIds((prev) => new Set(prev).add(listingProperty.id));
+      setListingProperty(null);
+      setListingPrice("");
+    } catch (err) {
+      setListingError(err instanceof Error ? err.message : "Failed to create listing");
+    } finally {
+      setListingLoading(false);
+    }
+  };
 
   useEffect(() => {
-    getOwnedProperties()
-      .then(setOwnedProperties)
+    Promise.all([getOwnedProperties(), getListedPropertyIds()])
+      .then(([properties, listedIds]) => {
+        setOwnedProperties(properties);
+        setListedPropertyIds(listedIds);
+      })
       .catch((error) => {
         if (error.message === "Token expired or unauthorized") {
           logout();
@@ -178,19 +261,42 @@ const DashboardPage: React.FC = () => {
               <div className="dashboard-list-item" key={property.title}>
                 <div
                   onClick={() => navigate(`/property/${index}`)}
-                  style={{ cursor: "pointer" }}
+                  style={{ cursor: "pointer", flex: 1 }}
                 >
                   <p className="dashboard-item-title">{property.title}</p>
                   <p className="dashboard-item-subtitle">
                     {property.addressLine} · {property.city}
                   </p>
                 </div>
-                <span className="dashboard-item-value">
-                  {property.yearBuilt}
-                </span>
+                <div className="dashboard-item-actions">
+                  {listedPropertyIds.has(property.id) ? (
+                    <span className="dashboard-listed-badge">Listed</span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="dashboard-btn-list"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setListingProperty(property);
+                      }}
+                    >
+                      List to Market
+                    </button>
+                  )}
+                  <span className="dashboard-item-value">
+                    {property.yearBuilt}
+                  </span>
+                </div>
               </div>
             ))}
           </div>
+          <button
+            type="button"
+            className="dashboard-btn-see-more"
+            onClick={() => setActiveModal("owned")}
+          >
+            See more properties
+          </button>
         </div>
 
         <div className="dashboard-card">
@@ -214,6 +320,13 @@ const DashboardPage: React.FC = () => {
               </div>
             ))}
           </div>
+          <button
+            type="button"
+            className="dashboard-btn-see-more"
+            onClick={() => setActiveModal("offers")}
+          >
+            See more offers
+          </button>
         </div>
 
         <div className="dashboard-card">
@@ -239,6 +352,13 @@ const DashboardPage: React.FC = () => {
               </div>
             ))}
           </div>
+          <button
+            type="button"
+            className="dashboard-btn-see-more"
+            onClick={() => setActiveModal("potential")}
+          >
+            See more properties
+          </button>
         </div>
 
         <div className="dashboard-card dashboard-card-split">
@@ -258,6 +378,13 @@ const DashboardPage: React.FC = () => {
                 </div>
               ))}
             </div>
+            <button
+              type="button"
+              className="dashboard-btn-see-more"
+              onClick={() => setActiveModal("transactions")}
+            >
+              See more transactions
+            </button>
           </div>
           <div className="dashboard-divider" />
           <div>
@@ -276,9 +403,233 @@ const DashboardPage: React.FC = () => {
                 </div>
               ))}
             </div>
+            <button
+              type="button"
+              className="dashboard-btn-see-more"
+              onClick={() => setActiveModal("activity")}
+            >
+              See more activity
+            </button>
           </div>
         </div>
       </section>
+
+      {activeModal && (
+        <div
+          className="dashboard-modal-overlay"
+          onClick={() => setActiveModal(null)}
+        >
+          <div
+            className="dashboard-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="dashboard-modal-header">
+              <h2>
+                {activeModal === "owned" && "All Owned Properties"}
+                {activeModal === "offers" && "All Active Offers & Bids"}
+                {activeModal === "potential" && "All Potential Properties"}
+                {activeModal === "transactions" && "All Transactions"}
+                {activeModal === "activity" && "All Activity"}
+              </h2>
+              <button
+                type="button"
+                className="dashboard-modal-close"
+                onClick={() => setActiveModal(null)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="dashboard-modal-content">
+              {activeModal === "owned" &&
+                ownedProperties.map((property, index) => (
+                  <div
+                    className="dashboard-modal-item"
+                    key={property.title}
+                    onClick={() => {
+                      setActiveModal(null);
+                      navigate(`/property/${index}`);
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <p className="dashboard-item-title">{property.title}</p>
+                      <p className="dashboard-item-subtitle">
+                        {property.addressLine} · {property.city}
+                      </p>
+                    </div>
+                    <div className="dashboard-item-actions">
+                      {listedPropertyIds.has(property.id) ? (
+                        <span className="dashboard-listed-badge">Listed</span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="dashboard-btn-list"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveModal(null);
+                            setListingProperty(property);
+                          }}
+                        >
+                          List to Market
+                        </button>
+                      )}
+                      <span className="dashboard-item-value">
+                        {property.yearBuilt}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              {activeModal === "offers" &&
+                activeOffers.map((offer, index) => (
+                  <div
+                    className="dashboard-modal-item"
+                    key={offer.property}
+                    onClick={() => {
+                      setActiveModal(null);
+                      navigate(`/property/${index}`);
+                    }}
+                  >
+                    <div>
+                      <p className="dashboard-item-title">{offer.property}</p>
+                      <p className="dashboard-item-subtitle">
+                        {offer.type} · {offer.status}
+                      </p>
+                    </div>
+                    <span className="dashboard-item-value">{offer.amount}</span>
+                  </div>
+                ))}
+              {activeModal === "potential" &&
+                potentialProperties.map((property, index) => (
+                  <div
+                    className="dashboard-modal-item"
+                    key={property.name}
+                    onClick={() => {
+                      setActiveModal(null);
+                      navigate(`/property/${index}`);
+                    }}
+                  >
+                    <div>
+                      <p className="dashboard-item-title">{property.name}</p>
+                      <p className="dashboard-item-subtitle">
+                        {property.location} · {property.projectedYield} yield
+                      </p>
+                    </div>
+                    <span className="dashboard-item-value">
+                      {property.fundingWindow}
+                    </span>
+                  </div>
+                ))}
+              {activeModal === "transactions" &&
+                transactions.map((item) => (
+                  <div className="dashboard-modal-item" key={item.title}>
+                    <div>
+                      <p className="dashboard-item-title">{item.title}</p>
+                      <p className="dashboard-item-subtitle">{item.date}</p>
+                    </div>
+                    <span className="dashboard-item-value">{item.amount}</span>
+                  </div>
+                ))}
+              {activeModal === "activity" &&
+                activity.map((item) => (
+                  <div className="dashboard-modal-item" key={item.detail}>
+                    <div className="dashboard-modal-activity-row">
+                      <span className="dashboard-activity-dot" />
+                      <div>
+                        <p className="dashboard-item-title">{item.detail}</p>
+                        <p className="dashboard-item-subtitle">{item.time}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {listingProperty && (
+        <div
+          className="dashboard-modal-overlay"
+          onClick={() => {
+            if (!listingLoading) {
+              setListingProperty(null);
+              setListingPrice("");
+              setListingError(null);
+            }
+          }}
+        >
+          <div
+            className="dashboard-modal dashboard-listing-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="dashboard-modal-header">
+              <h2>List Property to Market</h2>
+              <button
+                type="button"
+                className="dashboard-modal-close"
+                onClick={() => {
+                  if (!listingLoading) {
+                    setListingProperty(null);
+                    setListingPrice("");
+                    setListingError(null);
+                  }
+                }}
+                disabled={listingLoading}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="dashboard-listing-content">
+              <div className="dashboard-listing-property">
+                <p className="dashboard-item-title">{listingProperty.title}</p>
+                <p className="dashboard-item-subtitle">
+                  {listingProperty.addressLine} · {listingProperty.city}
+                </p>
+              </div>
+              <div className="dashboard-listing-form">
+                <label htmlFor="listing-price" className="dashboard-listing-label">
+                  Set your listing price
+                </label>
+                <div className="dashboard-listing-input-wrapper">
+                  <span className="dashboard-listing-currency">$</span>
+                  <input
+                    id="listing-price"
+                    type="number"
+                    className="dashboard-listing-input"
+                    placeholder="Enter price"
+                    value={listingPrice}
+                    onChange={(e) => setListingPrice(e.target.value)}
+                    disabled={listingLoading}
+                  />
+                </div>
+                {listingError && (
+                  <p className="dashboard-listing-error">{listingError}</p>
+                )}
+              </div>
+              <div className="dashboard-listing-actions">
+                <button
+                  type="button"
+                  className="dashboard-btn-cancel"
+                  onClick={() => {
+                    setListingProperty(null);
+                    setListingPrice("");
+                    setListingError(null);
+                  }}
+                  disabled={listingLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="dashboard-btn-confirm"
+                  onClick={handleListProperty}
+                  disabled={!listingPrice || listingLoading}
+                >
+                  {listingLoading ? "Listing..." : "List Property"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };

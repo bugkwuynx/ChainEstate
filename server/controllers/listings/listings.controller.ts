@@ -24,7 +24,11 @@ export const createListingHandler = async(
 
         if (!newListing.propertyId || !newListing.sellerId || !newListing.priceWei) {
             return res.status(400).json({message: "All fields are required"});
-        } 
+        }
+
+        if (newListing.sellerId == "") {
+            return res.status(400).json({message: "User Id is not valid"});
+        }
 
         // Check if property exists
         const getPropertyResult = await getPropertyById(newListing.propertyId);
@@ -37,6 +41,11 @@ export const createListingHandler = async(
         if (getPropertyResult.ownerId != newListing.sellerId) {
             return res.status(400).json({message: `Property ${newListing.propertyId} does not belong to user ${newListing.sellerId}`});
         }
+
+        // Check if the property has been listed
+        const getListingResult = await getListings({
+            where: {propertyId: newListing.propertyId}
+        });
 
         const createListingResult = await createListing(newListing);
 

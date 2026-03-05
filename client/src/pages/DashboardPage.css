@@ -346,3 +346,167 @@
     align-items: flex-start;
     gap: 12px;
 }
+
+.dashboard-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dashboard-btn-list {
+    background: transparent;
+    color: #bfbfbf;
+    border: 1px solid #444;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.dashboard-btn-list:hover {
+    background: #f7f7f7;
+    color: #0b0b0b;
+    border-color: #f7f7f7;
+}
+
+.dashboard-listing-modal {
+    max-width: 480px;
+}
+
+.dashboard-listing-content {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.dashboard-listing-property {
+    background: #1a1a1a;
+    padding: 16px;
+    border-radius: 12px;
+}
+
+.dashboard-listing-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dashboard-listing-label {
+    font-size: 13px;
+    color: #bfbfbf;
+    letter-spacing: 0.04em;
+}
+
+.dashboard-listing-input-wrapper {
+    display: flex;
+    align-items: center;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 0 16px;
+    transition: border-color 0.2s;
+}
+
+.dashboard-listing-input-wrapper:focus-within {
+    border-color: #f7f7f7;
+}
+
+.dashboard-listing-currency {
+    font-size: 18px;
+    font-weight: 600;
+    color: #bfbfbf;
+    margin-right: 8px;
+}
+
+.dashboard-listing-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #f7f7f7;
+    font-size: 18px;
+    font-weight: 600;
+    padding: 14px 0;
+    outline: none;
+}
+
+.dashboard-listing-input::placeholder {
+    color: #555;
+    font-weight: 400;
+}
+
+.dashboard-listing-input::-webkit-outer-spin-button,
+.dashboard-listing-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.dashboard-listing-input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.dashboard-listing-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.dashboard-btn-cancel {
+    background: transparent;
+    color: #bfbfbf;
+    border: 1px solid #333;
+    padding: 12px 24px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.dashboard-btn-cancel:hover {
+    background: #1a1a1a;
+    border-color: #555;
+    color: #f7f7f7;
+}
+
+.dashboard-btn-confirm {
+    background: #f7f7f7;
+    color: #0b0b0b;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.dashboard-btn-confirm:hover:not(:disabled) {
+    background: #e0e0e0;
+}
+
+.dashboard-btn-confirm:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.dashboard-listing-error {
+    margin: 0;
+    color: #ff6b6b;
+    font-size: 13px;
+}
+
+.dashboard-listed-badge {
+    background: #2d5a3d;
+    color: #7adf9a;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
