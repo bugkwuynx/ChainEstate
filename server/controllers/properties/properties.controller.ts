@@ -52,7 +52,7 @@ export const createPropertyHandler = async(
             return res.status(400).json({message: "Error minting property"});
         }
 
-        newProperty.tokenAddress = mintPropertyResult.tokenAddress as string;
+        newProperty.tokenAddress = mintPropertyResult.tokenId as string;
 
         const createPropertyResult = await createProperty(newProperty);
 

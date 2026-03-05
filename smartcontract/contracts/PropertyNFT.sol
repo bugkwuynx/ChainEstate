@@ -22,6 +22,12 @@ contract PropertyNFT is ERC721URIStorage, Ownable {
         string physicalAddress
     );
 
+    event PropertyTransferred(
+        uint256 indexed tokenId,
+        address indexed from,
+        address indexed to
+    );
+
     constructor() ERC721("PropertyNFT", "PROP") Ownable(msg.sender) {}
 
     /**
@@ -30,13 +36,16 @@ contract PropertyNFT is ERC721URIStorage, Ownable {
         - physicalAddress: real-world address (hashed to prevent duplicates)
         - tokenURI: IPFS metadata link
      */
-     function mintProperty(
+    function mintProperty(
         address owner,
         string memory physicalAddress,
         string memory tokenURI
-     ) public onlyOwner returns (uint256) {
+    ) public onlyOwner returns (uint256) {
         require(owner != address(0), "Invalid owner address");
-        require(bytes(physicalAddress).length > 0, "Physical address is required");
+        require(
+            bytes(physicalAddress).length > 0,
+            "Physical address is required"
+        );
         require(bytes(tokenURI).length > 0, "Token URI is required");
 
         // Hash the physical address to prevent duplicate tokenization
@@ -58,7 +67,37 @@ contract PropertyNFT is ERC721URIStorage, Ownable {
         });
 
         emit PropertyMinted(newTokenId, owner, physicalAddress);
-        
+
         return newTokenId;
-     }
+    }
+
+    /**
+        Transfer property ownership
+     */
+    function transferProperty(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public {
+        require(to != address(0), "Invalid recipient");
+
+        // Only owner or approved can transfer
+        require(_ownerOf(tokenId) == msg.sender, "Not owner nor approved");
+
+        safeTransferFrom(from, to, tokenId);
+
+        properties[tokenId].owner = to;
+
+        emit PropertyTransferred(tokenId, from, to);
+    }
+
+    /**
+        View property details
+     */
+    function getProperty(
+        uint256 tokenId
+    ) public view returns (PropertyData memory) {
+        require(_ownerOf(tokenId) != address(0), "Property does not exist");
+        return properties[tokenId];
+    }
 }
