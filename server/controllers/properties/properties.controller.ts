@@ -13,7 +13,6 @@ import {
     GetPropertyByIdRequest,
     UpdatePropertyRequest,
 } from "../../types/properties.types";
-import { mintPropertyOnChain } from "../../services/properties/propertyContract.service";
 import { getUsers } from "../../services/users/users.service";
 import type { User } from "../../types/users.types";
 
@@ -36,28 +35,11 @@ export const createPropertyHandler = async(
             return res.status(400).json({message: "User not found"});
         }
 
-        const user: User = getUsersResult[0] as User;
-        const ownerAddress = user.walletAddress;
-
-        const physicalAddress = `${newProperty.addressLine}, ${newProperty.city}, ${newProperty.country}`;
-        const tokenURI = "";
-
-        const mintPropertyResult = await mintPropertyOnChain(
-            ownerAddress,
-            physicalAddress,
-            tokenURI
-        );
-
-        if (!mintPropertyResult || !mintPropertyResult.success) {
-            return res.status(400).json({message: "Error minting property"});
-        }
-
-        newProperty.tokenAddress = mintPropertyResult.tokenId as string;
-
         const createPropertyResult = await createProperty(newProperty);
 
         res.status(201).json(createPropertyResult as Property);
     } catch (error) {
+        console.log(error);
         res.status(500).json({message: `Error creating property: ${error}`});
     }
 }

@@ -2,6 +2,14 @@ import {ethers} from 'ethers';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+export const getWalletAddress = async() => {
+    const walletAddress = await connectWallet();
+    if (!walletAddress) {
+        throw new Error('Wallet connection failed');
+    }
+    return walletAddress;
+}
+
 export const connectWallet = async(): Promise<string> => {
     if (!window.ethereum) {
         throw new Error("MetaMask not installed");

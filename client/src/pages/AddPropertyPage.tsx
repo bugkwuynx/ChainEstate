@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./AddPropertyPage.css";
 import type { NewProperty } from "@/types/Property.types";
+import { mintProperty } from "@/services/transferPropertyContract.service";
+import { getWalletAddress } from "@/services/auth.service";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -79,20 +81,50 @@ const AddPropertyPage: React.FC = () => {
        */
       const token = localStorage.getItem("token");
       const userId = localStorage.getItem("userId");
-      console.log(form);
+      // console.log(form);
       if (!userId) {
         throw new Error("User ID is required.");
       }
       form.ownerId = localStorage.getItem("userId") ?? "";
-      console.log(token);
+      // console.log(token);
+
+      const walletAddress = await getWalletAddress();
+      const physicalAddress = `${form.addressLine}, ${form.city}, ${form.country}`;
+      const mintPropertyResult: any = await mintProperty(
+        walletAddress,
+        physicalAddress,
+      );
+
+      console.log(mintPropertyResult);
+
+      if (!mintPropertyResult.success) {
+        throw new Error("Error minting property on chain");
+      }
+
+      const newProperty: NewProperty = {
+        tokenAddress: mintPropertyResult.tokenId,
+        ownerId: form.ownerId,
+        title: form.title,
+        description: form.description,
+        country: form.country,
+        city: form.city,
+        addressLine: form.addressLine,
+        propertyType: form.propertyType,
+        sizeSqft: form.sizeSqft,
+        yearBuilt: form.yearBuilt,
+      };
+
+      console.log(newProperty);
+
       const addPropertyResult = await fetch(`${API_URL}/properties`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(newProperty),
       });
+
       if (!addPropertyResult.ok) {
         throw new Error("Failed to create property.");
       }
