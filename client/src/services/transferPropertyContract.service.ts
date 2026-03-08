@@ -1,34 +1,56 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ethers } from "ethers";
 import PropertyNFTArtifact from "../abi/PropertyNFT.json";
 
-const provider = new ethers.JsonRpcProvider(import.meta.env.RPC_URL!);
-const CONTRAACT_ADDRESS =     import.meta.env.PROPERTY_NFT_ADDRESS!;
+const provider = new ethers.JsonRpcProvider(import.meta.env.VITE_RPC_URL);
+const CONTRACT_ADDRESS = import.meta.env.VITE_PROPERTY_NFT_ADDRESS;
 
 const signer = new ethers.Wallet(
-    import.meta.env.RPC_PRIVATE_KEY!,
+    import.meta.env.VITE_RPC_PRIVATE_KEY,
     provider
 );
 
 const contract = new ethers.Contract(
-    CONTRAACT_ADDRESS,
+    CONTRACT_ADDRESS,
     PropertyNFTArtifact.abi ?? PropertyNFTArtifact,
     signer
 );
 
 export const mintProperty = async(ownerAddress: string, physicalAddress: string) => {
-    const tx = await contract.mintProperty(ownerAddress, physicalAddress);
+    try {
+        const tx = await contract.mintProperty(ownerAddress, physicalAddress);
 
-    const receipt = await tx.wait();
+        const receipt = await tx.wait();
 
-    return {
-        success: true,
-        txHash: receipt.hash,
-        tokenId: receipt.tokenId
+        const event = receipt.logs
+            .map((log: any) => {
+                try {
+                    return contract.interface.parseLog(log);
+                } catch {
+                    return null;
+                }
+            })
+            .find((e: any) => e?.name === "PropertyMinted");
+
+        const tokenId = event?.args?.tokenId?.toString();
+
+        console.log(tokenId);
+
+        return {
+            success: true,
+            txHash: receipt.hash,
+            tokenId: tokenId
+        }
+    } catch (error) {
+        console.log(error);
+        if (error instanceof Error) {
+            console.log(error.message);
+        }
     }
 }
 
 export const approveMarketplace = async(tokenId: number) => {
-    const tx = await contract.approve(CONTRAACT_ADDRESS, tokenId);
+    const tx = await contract.approve(CONTRACT_ADDRESS, tokenId);
 
     const receipt = await tx.wait();
     

@@ -39,11 +39,20 @@ export const createProperty = async(newProperty: NewProperty): Promise<Property>
             ipfs_metadata_uri AS "ipfsMetadataUri",
             created_at AS "createdAt"
     `;
-    console.log(query);
-    console.log(newProperty);
+    
 
-    const keys = Object.keys(newProperty);
-    const values = keys.map(key => newProperty[key as keyof typeof newProperty]);
+    const values = [
+        newProperty.ownerId,
+        newProperty.tokenAddress,
+        newProperty.title,
+        newProperty.description,
+        newProperty.country,
+        newProperty.city,
+        newProperty.addressLine,
+        newProperty.propertyType,
+        newProperty.sizeSqft,
+        newProperty.yearBuilt
+    ];
     console.log(values);
     const result = await pool.query(query, values);
 
