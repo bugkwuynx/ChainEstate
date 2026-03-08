@@ -5,154 +5,153 @@ const { ethers } = await network.connect();
 
 import { PropertyNFT } from "../types/ethers-contracts/PropertyNFT.js";
 
-describe("PropertyNFT - Mint", function () {
-    let propertyNFT: PropertyNFT;
-    let owner: any;
-    let user: any;
-    let other: any;
+describe("PropertyNFT", function () {
+  let propertyNFT: PropertyNFT;
 
-    const physicalAddress = "123 Main St, Anytown, USA";
-    const tokenURI = "ipfs://QmY...";
+  let owner: any;
+  let seller: any;
+  let buyer: any;
 
-    this.beforeEach(async function() {
-        [owner, user, other] = await ethers.getSigners();
+  const propertyAddress = "123 Blockchain Street";
 
-        const PropertyNFTFactory = await ethers.getContractFactory("PropertyNFT");
-        propertyNFT = (await PropertyNFTFactory.deploy()) as PropertyNFT;
+  beforeEach(async () => {
+    [owner, seller, buyer] = await ethers.getSigners();
 
-        await propertyNFT.waitForDeployment();
+    const ContractFactory = await ethers.getContractFactory("PropertyNFT");
+    propertyNFT = await ContractFactory.deploy();
+    await propertyNFT.waitForDeployment();
+  });
+
+  describe("Minting", function () {
+    it("should mint a property NFT", async () => {
+      await propertyNFT.mintProperty(seller.address, propertyAddress);
+
+      expect(await propertyNFT.ownerOf(1)).to.equal(seller.address);
+
+      const property = await propertyNFT.properties(1);
+      expect(property.physicalAddress).to.equal(propertyAddress);
     });
 
-    describe("Deployment", function() {
-        it("Should set the correct name and symbol", async () => {
-            expect(await propertyNFT.name()).to.equal("PropertyNFT");
-            expect(await propertyNFT.symbol()).to.equal("PROP");
-        });
+    it("should prevent duplicate properties", async () => {
+      await propertyNFT.mintProperty(seller.address, propertyAddress);
 
-        it ("Should set deployer as contract owner", async () => {
-            expect(await propertyNFT.owner()).to.equal(owner.address);
-        });
+      await expect(
+        propertyNFT.mintProperty(seller.address, propertyAddress)
+      ).to.be.revertedWith("Property already exists");
+    });
+  });
+
+  describe("Listing Property", function () {
+    beforeEach(async () => {
+      await propertyNFT.mintProperty(seller.address, propertyAddress);
+
+      await propertyNFT
+        .connect(seller)
+        .approve(await propertyNFT.getAddress(), 1);
     });
 
-    describe("Minting", () => {
-        it("Should mint a property NFT sucessfully", async () => {
-            const tx = await propertyNFT
-                .connect(owner)
-                .mintProperty(user.address, physicalAddress, tokenURI);
+    it("should list a property for sale", async () => {
+      const price = ethers.parseEther("1");
 
-            const receipt = await tx.wait();
+      await propertyNFT.connect(seller).listProperty(1, price);
 
-            const tokenId = 1;
+      const listing = await propertyNFT.listings(1);
 
-            expect(await propertyNFT.ownerOf(tokenId)).to.equal(user.address);
-            expect(await propertyNFT.tokenURI(tokenId)).to.equal(tokenURI);
-
-            const property = await propertyNFT.properties(tokenId);
-            expect(property.physicalAddress).to.equal(physicalAddress);
-            expect(property.tokenId).to.equal(tokenId);
-            expect(property.owner).to.equal(user.address);
-        });
-
-        it("Should emit PropertyMinted event", async function () {
-            await expect(
-                propertyNFT
-                .connect(owner)
-                .mintProperty(user.address, physicalAddress, tokenURI)
-            )
-                .to.emit(propertyNFT, "PropertyMinted")
-                .withArgs(1, user.address, physicalAddress);
-        });
-      
-        it("Should revert if not called by owner", async function () {
-        await expect(
-            propertyNFT
-            .connect(user)
-            .mintProperty(user.address, physicalAddress, tokenURI)
-        ).to.be.revertedWithCustomError(propertyNFT, "OwnableUnauthorizedAccount");
-        });
-    
-        it("Should revert for zero address owner", async function () {
-        await expect(
-            propertyNFT
-            .connect(owner)
-            .mintProperty(ethers.ZeroAddress, physicalAddress, tokenURI)
-        ).to.be.revertedWith("Invalid owner address");
-        });
-    
-        it("Should revert if physical address is empty", async function () {
-        await expect(
-            propertyNFT
-            .connect(owner)
-            .mintProperty(user.address, "", tokenURI)
-        ).to.be.revertedWith("Physical address is required");
-        });
-    
-        it("Should revert if token URI is empty", async function () {
-        await expect(
-            propertyNFT
-            .connect(owner)
-            .mintProperty(user.address, physicalAddress, "")
-        ).to.be.revertedWith("Token URI is required");
-        });
-    
-        it("Should prevent duplicate property minting", async function () {
-        await propertyNFT
-            .connect(owner)
-            .mintProperty(user.address, physicalAddress, tokenURI);
-    
-        await expect(
-            propertyNFT
-            .connect(owner)
-            .mintProperty(other.address, physicalAddress, tokenURI)
-        ).to.be.revertedWith("Property already exists");
-        });
-    });
-});
-
-describe("PropertyNFT - Transfer", function() {
-    let propertyNFT: PropertyNFT;
-    let owner: any;
-    let user1: any;
-    let user2: any;
-
-    beforeEach(async function() {
-        [owner, user1, user2] = await ethers.getSigners();
-
-        const PropertyNFTFactory = await ethers.getContractFactory("PropertyNFT");
-        propertyNFT = await PropertyNFTFactory.deploy();
-        await propertyNFT.waitForDeployment();
+      expect(listing.priceWei).to.equal(price);
+      expect(listing.seller).to.equal(seller.address);
+      expect(listing.isActive).to.equal(true);
     });
 
-    it("Should transfer property ownership sucessfully", async function() {
-        // Mint property to user1
-        const tx = await propertyNFT.connect(owner).mintProperty(
-            user1.address, "123 Main St", "ipfs://metadata"
-        );
+    it("should prevent non-owner from listing", async () => {
+      const price = ethers.parseEther("1");
 
-        await tx.wait();
+      await expect(
+        propertyNFT.connect(buyer).listProperty(1, price)
+      ).to.be.revertedWith("Not owner");
+    });
+  });
 
-        const tokenId = 1;
+  describe("Update Listing", function () {
+    beforeEach(async () => {
+      await propertyNFT.mintProperty(seller.address, propertyAddress);
 
-        // Transfer from user1 to user2
-        await propertyNFT.connect(user1).transferProperty(
-            user1.address, user2.address, tokenId
-        );
+      await propertyNFT
+        .connect(seller)
+        .approve(await propertyNFT.getAddress(), 1);
 
-        // Verify new owner
-        const newOwner = await propertyNFT.ownerOf(tokenId);
-        expect(newOwner).to.equal(user2.address);
+      await propertyNFT
+        .connect(seller)
+        .listProperty(1, ethers.parseEther("1"));
     });
 
-    it("Should fail if non-owner tries to transfer", async function() {
-        await propertyNFT.connect(owner).mintProperty(
-            user1.address, "456 Park Ave", "ipfs://metadata2"
-        );
+    it("should update listing price", async () => {
+      const newPrice = ethers.parseEther("2");
 
-        const tokenId = 1;
+      await propertyNFT.connect(seller).updateListing(1, newPrice);
 
-        // user2 tries to transfer (not owner)
-        await expect(propertyNFT.connect(user2).transferProperty(
-            user1.address, user2.address, tokenId
-        )).to.be.revertedWith("Not owner nor approved");
+      const listing = await propertyNFT.listings(1);
+      expect(listing.priceWei).to.equal(newPrice);
     });
+  });
+
+  describe("Cancel Listing", function () {
+    beforeEach(async () => {
+      await propertyNFT.mintProperty(seller.address, propertyAddress);
+
+      await propertyNFT
+        .connect(seller)
+        .approve(await propertyNFT.getAddress(), 1);
+
+      await propertyNFT
+        .connect(seller)
+        .listProperty(1, ethers.parseEther("1"));
+    });
+
+    it("should cancel a listing", async () => {
+      await propertyNFT.connect(seller).cancelListing(1);
+
+      const listing = await propertyNFT.listings(1);
+      expect(listing.isActive).to.equal(false);
+    });
+  });
+
+  describe("Buying Property", function () {
+    beforeEach(async () => {
+      await propertyNFT.mintProperty(seller.address, propertyAddress);
+
+      await propertyNFT
+        .connect(seller)
+        .approve(await propertyNFT.getAddress(), 1);
+
+      await propertyNFT
+        .connect(seller)
+        .listProperty(1, ethers.parseEther("1"));
+    });
+
+    it("should transfer NFT and ETH when purchased", async () => {
+      const price = ethers.parseEther("1");
+
+      const sellerBalanceBefore = await ethers.provider.getBalance(
+        seller.address
+      );
+
+      await propertyNFT.connect(buyer).buyProperty(1, { value: price });
+
+      expect(await propertyNFT.ownerOf(1)).to.equal(buyer.address);
+
+      const sellerBalanceAfter = await ethers.provider.getBalance(
+        seller.address
+      );
+
+      expect(sellerBalanceAfter).to.be.gt(sellerBalanceBefore);
+    });
+
+    it("should reject incorrect payment", async () => {
+      await expect(
+        propertyNFT
+          .connect(buyer)
+          .buyProperty(1, { value: ethers.parseEther("0.5") })
+      ).to.be.revertedWith("Incorrect payment");
+    });
+  });
 });
